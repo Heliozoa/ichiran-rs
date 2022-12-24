@@ -33,7 +33,6 @@ impl IchiranCli {
 
     pub fn full_split_info(&self, input: &str) -> Result<FullSplitInfo, IchiranError> {
         let (stdout, _stderr) = self.run(&["-f", input])?;
-        println!("{stdout}");
         let jd = &mut serde_json::Deserializer::from_str(&stdout);
         let json = serde_path_to_error::deserialize(jd)?;
         Ok(json)
