@@ -93,39 +93,49 @@ impl IchiranCli {
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
 #[serde(transparent)]
-pub struct FullSplitInfo(pub Vec<InputSegment>);
+pub struct FullSplitInfo(pub Vec<Segment>);
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
 #[serde(untagged)]
 #[serde(deny_unknown_fields)]
-pub enum InputSegment {
-    Processed(Vec<FullSplitInfoEntry>),
-    Plain(String),
+pub enum Segment {
+    /// Japanese
+    Words(Vec<WordSegment>),
+    /// Punctuation, etc.
+    Other(String),
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-pub struct FullSplitInfoEntry(pub Vec<FullSplitInfoWord>, pub i32);
+pub struct WordSegment(
+    /// Words
+    pub Vec<Word>,
+    /// Unknown
+    pub i32,
+);
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-pub struct FullSplitInfoWord(
+pub struct Word(
+    /// Romanized
     pub String,
-    pub WordOrAlternatives,
+    /// One or more alternative WordInfo
+    pub Alternatives,
+    /// Unknown
     pub Vec<serde_json::Value>,
 );
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 #[serde(untagged)]
-pub enum WordOrAlternatives {
-    Word(Word),
-    Alternatives { alternative: Vec<Word> },
+pub enum Alternatives {
+    WordInfo(WordInfo),
+    Alternatives { alternative: Vec<WordInfo> },
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-pub struct Word {
+pub struct WordInfo {
     pub reading: String,
     pub text: String,
     pub kana: String,
@@ -134,7 +144,7 @@ pub struct Word {
     #[serde(default)]
     pub compound: Vec<String>,
     #[serde(default)]
-    pub components: Vec<Word>,
+    pub components: Vec<WordInfo>,
     pub seq: Option<i32>,
     #[serde(default)]
     pub gloss: Vec<Gloss>,
@@ -213,7 +223,6 @@ pub struct RomanizedWithInfoEntry {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::fs::read_to_string;
 
     fn ichiran() -> IchiranCli {
         IchiranCli::new(PathBuf::from("./ichiran-cli"))
