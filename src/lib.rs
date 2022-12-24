@@ -106,7 +106,7 @@ pub enum InputSegment {
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-pub struct FullSplitInfoEntry(Vec<FullSplitInfoWord>, i32);
+pub struct FullSplitInfoEntry(pub Vec<FullSplitInfoWord>, pub i32);
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
