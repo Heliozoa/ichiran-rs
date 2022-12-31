@@ -1,7 +1,10 @@
-///! Bindings for ichiran-cli.
-use serde::Deserialize;
-use std::string::FromUtf8Error;
-pub use std::{error::Error, path::PathBuf, process::Command};
+//! Bindings for ichiran-cli.
+
+pub mod raw;
+mod rusty;
+
+pub use self::rusty::*;
+use std::{path::PathBuf, process::Command};
 use thiserror::Error;
 
 /// Crate error type.
@@ -10,7 +13,7 @@ pub enum IchiranError {
     #[error("Error while trying to run ichiran-cli")]
     CommandError(#[source] std::io::Error),
     #[error("ichiran-cli output invalid utf-8")]
-    InvalidUtf8(#[from] FromUtf8Error),
+    InvalidUtf8(#[from] std::string::FromUtf8Error),
     #[error("Unexpected output from ichiran-cli")]
     UnexpectedOutput(String),
     #[error("ichiran-cli returned a non-zero exit code")]
@@ -31,13 +34,15 @@ impl IchiranCli {
         Self { cli_path }
     }
 
-    pub fn full_split_info(&self, input: &str) -> Result<FullSplitInfo, IchiranError> {
+    /// Calls and parses the output of `ichiran-cli -f`.
+    pub fn segment(&self, input: &str) -> Result<Vec<Segment>, IchiranError> {
         let (stdout, _stderr) = self.run(&["-f", input])?;
         let jd = &mut serde_json::Deserializer::from_str(&stdout);
-        let json = serde_path_to_error::deserialize(jd)?;
-        Ok(json)
+        let info: raw::FullSplitInfo = serde_path_to_error::deserialize(jd)?;
+        Ok(info.into())
     }
 
+    /// Calls and parses the output of `ichiran-cli -i`.
     pub fn romanize_with_info(&self, input: &str) -> Result<RomanizedWithInfo, IchiranError> {
         let (stdout, _stderr) = self.run(&["-i", input])?;
         let mut lines = stdout.lines();
@@ -69,6 +74,7 @@ impl IchiranCli {
         Ok(RomanizedWithInfo { romanized, entries })
     }
 
+    /// Calls and parses the output of `ichiran-cli` without any flags.
     pub fn romanize(&self, input: &str) -> Result<String, IchiranError> {
         let (mut stdout, _stderr) = self.run(&[input])?;
         // truncate to cut off the newline
@@ -91,123 +97,6 @@ impl IchiranCli {
     }
 }
 
-#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(transparent)]
-pub struct FullSplitInfo(pub Vec<Segment>);
-
-#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(untagged)]
-#[serde(deny_unknown_fields)]
-pub enum Segment {
-    /// Japanese
-    Words(Vec<WordSegment>),
-    /// Punctuation, etc.
-    Other(String),
-}
-
-#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-pub struct WordSegment(
-    /// Words
-    pub Vec<Word>,
-    /// Unknown
-    pub i32,
-);
-
-#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-pub struct Word(
-    /// Romanized
-    pub String,
-    /// One or more alternative WordInfo
-    pub Alternatives,
-    /// Unknown
-    pub Vec<serde_json::Value>,
-);
-
-#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-#[serde(untagged)]
-pub enum Alternatives {
-    WordInfo(WordInfo),
-    Alternatives { alternative: Vec<WordInfo> },
-}
-
-#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-pub struct WordInfo {
-    pub reading: String,
-    pub text: String,
-    pub kana: String,
-    pub score: i32,
-    pub counter: Option<Counter>,
-    #[serde(default)]
-    pub compound: Vec<String>,
-    #[serde(default)]
-    pub components: Vec<WordInfo>,
-    pub seq: Option<i32>,
-    #[serde(default)]
-    pub gloss: Vec<Gloss>,
-    pub suffix: Option<String>,
-    #[serde(default)]
-    pub conj: Vec<Conj>,
-}
-
-#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-pub struct Counter {
-    pub value: String,
-    pub ordinal: Ordinal,
-}
-
-#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-#[serde(untagged)]
-pub enum Ordinal {
-    Bool(bool),
-    Vec(Vec<serde_json::Value>),
-}
-
-#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-pub struct Gloss {
-    pub pos: String,
-    pub gloss: String,
-    pub info: Option<String>,
-}
-
-#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-pub struct Conj {
-    pub prop: Vec<ConjProp>,
-    #[serde(default)]
-    pub via: Vec<Conj>,
-    pub reading: Option<String>,
-    #[serde(default)]
-    pub gloss: Vec<Gloss>,
-    pub readok: Readok,
-}
-
-#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-#[serde(untagged)]
-pub enum Readok {
-    Bool(bool),
-    Vec(Vec<serde_json::Value>),
-}
-
-#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-pub struct ConjProp {
-    pub pos: String,
-    #[serde(rename = "type")]
-    pub prop_type: String,
-    #[serde(default)]
-    pub fml: bool,
-    #[serde(default)]
-    pub neg: bool,
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RomanizedWithInfo {
     pub romanized: String,
@@ -223,9 +112,10 @@ pub struct RomanizedWithInfoEntry {
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::io::Write;
 
     fn ichiran() -> IchiranCli {
-        IchiranCli::new(PathBuf::from("./ichiran-cli"))
+        IchiranCli::new(PathBuf::from("./data/ichiran-cli"))
     }
 
     #[test]
@@ -296,6 +186,6 @@ mod test {
     #[test]
     fn gets_full_split_info() {
         let ichiran = ichiran();
-        let _json = ichiran.full_split_info("一覧は最高だぞ").unwrap();
+        let _segmented = ichiran.segment("一覧は最高だぞ").unwrap();
     }
 }
