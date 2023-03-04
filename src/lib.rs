@@ -46,10 +46,12 @@ impl IchiranCli {
     pub fn romanize_with_info(&self, input: &str) -> Result<RomanizedWithInfo, IchiranError> {
         let (stdout, _stderr) = self.run(&["-i", input])?;
         let mut lines = stdout.lines();
-        let romanized = lines
+        let mut romanized = lines
             .next()
             .ok_or_else(|| IchiranError::UnexpectedOutput(stdout.clone()))?
             .to_string();
+        let trimmed = romanized.trim_end().len();
+        romanized.truncate(trimmed);
         let mut entries = vec![];
         let mut word = None;
         let mut alternatives = vec![];
@@ -78,7 +80,8 @@ impl IchiranCli {
     pub fn romanize(&self, input: &str) -> Result<String, IchiranError> {
         let (mut stdout, _stderr) = self.run(&[input])?;
         // truncate to cut off the newline
-        stdout.truncate(stdout.len() - 1);
+        let trimmed = stdout.trim_end().len();
+        stdout.truncate(trimmed);
         Ok(stdout)
     }
 
