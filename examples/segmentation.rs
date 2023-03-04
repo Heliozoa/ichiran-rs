@@ -4,7 +4,7 @@ use std::{error::Error, path::PathBuf};
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = IchiranCli::new(PathBuf::from("./data/ichiran-cli"));
 
-    let segmentation = cli.segment("いい天気ですね。")?; //")?;
+    let segmentation = cli.segment("いい天気ですね。")?;
     println!("{segmentation:#?}");
     /* outputs
     [

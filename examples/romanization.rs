@@ -6,7 +6,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let romanized = cli.romanize("いい天気ですね。")?;
     println!("{romanized}");
-    // outputs "iitenki desu ne."
+    /* outputs
+    iitenki desu ne.
+    */
 
     let info = cli.romanize_with_info("いい天気ですね。")?;
     println!("{info:#?}");
