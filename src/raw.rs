@@ -119,11 +119,19 @@ pub struct Conj {
 pub struct ConjProp {
     pub pos: String,
     #[serde(rename = "type")]
-    pub prop_type: String,
+    pub prop_type: PropType,
     #[serde(default)]
     pub fml: bool,
     #[serde(default)]
     pub neg: bool,
+}
+
+#[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+#[serde(untagged)]
+pub enum PropType {
+    String(String),
+    Vec(Vec<serde_json::Value>),
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]

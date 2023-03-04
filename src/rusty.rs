@@ -204,7 +204,7 @@ impl From<raw::Readok> for bool {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConjProp {
     pub pos: String,
-    pub prop_type: String,
+    pub prop_type: Option<String>,
     pub fml: bool,
     pub neg: bool,
 }
@@ -213,9 +213,18 @@ impl From<raw::ConjProp> for ConjProp {
     fn from(value: raw::ConjProp) -> Self {
         Self {
             pos: value.pos,
-            prop_type: value.prop_type,
+            prop_type: value.prop_type.into(),
             fml: value.fml,
             neg: value.neg,
+        }
+    }
+}
+
+impl From<raw::PropType> for Option<String> {
+    fn from(value: raw::PropType) -> Self {
+        match value {
+            raw::PropType::String(s) => Some(s),
+            raw::PropType::Vec(_) => None,
         }
     }
 }
