@@ -115,7 +115,6 @@ pub struct RomanizedWithInfoEntry {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::io::Write;
 
     fn ichiran() -> IchiranCli {
         IchiranCli::new(PathBuf::from("./data/ichiran-cli"))

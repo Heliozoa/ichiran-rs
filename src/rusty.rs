@@ -43,7 +43,6 @@ impl From<raw::WordSegment> for WordSegment {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Word {
     pub romanized: String,
-    /// One or more alternative WordInfo
     pub alternatives: Vec<Alternative>,
 }
 
