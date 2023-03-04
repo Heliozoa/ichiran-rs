@@ -1,5 +1,10 @@
 # ichiran-rs
 
+[![Crates.io](https://img.shields.io/crates/v/ichiran)](https://crates.io/crates/ichiran)
+[![docs.rs](https://img.shields.io/badge/docs.rs-ichiran-success)](https://docs.rs/ichiran)
+[![Crates.io](https://img.shields.io/crates/l/ichiran)](https://choosealicense.com/licenses/mpl-2.0/)
+[![GitHub](https://img.shields.io/badge/GitHub-Heliozoa-24292f)](https://github.com/Heliozoa/ichiran)
+
 Rust bindings for [`ichiran-cli`](https://github.com/tshatrov/ichiran).
 
 Ichiran's API is not stable, so this crate may not work with some future version of `ichiran-cli`.
