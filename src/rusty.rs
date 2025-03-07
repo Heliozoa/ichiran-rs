@@ -2,11 +2,13 @@
 
 use crate::raw;
 
+/// A single segment which may consist of one or more words,
+/// or punctuation or other non-word text.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Segment {
-    /// Japanese
-    Words(Vec<WordSegment>),
-    /// Punctuation, etc.
+    /// A list of alternate segmentations for a sequence of words.
+    Segmentations(Vec<Segmentation>),
+    /// Punctuation or other non-word text.
     Other(String),
 }
 
@@ -16,8 +18,8 @@ impl From<raw::FullSplitInfo> for Vec<Segment> {
             .0
             .into_iter()
             .map(|s| match s {
-                raw::Segment::Words(words) => {
-                    Segment::Words(words.into_iter().map(Into::into).collect())
+                raw::Segment::Segmentations(words) => {
+                    Segment::Segmentations(words.into_iter().map(Into::into).collect())
                 }
                 raw::Segment::Other(other) => Segment::Other(other),
             })
@@ -25,17 +27,19 @@ impl From<raw::FullSplitInfo> for Vec<Segment> {
     }
 }
 
+/// A possible segmentation for a sequence of one or more words.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct WordSegment {
+pub struct Segmentation {
     pub words: Vec<Word>,
-    pub unknown: i32,
+    /// A higher score indicates that this segmentation is more likely to be correct.
+    pub score: i32,
 }
 
-impl From<raw::WordSegment> for WordSegment {
-    fn from(value: raw::WordSegment) -> Self {
+impl From<raw::Segmentation> for Segmentation {
+    fn from(value: raw::Segmentation) -> Self {
         Self {
             words: value.0.into_iter().map(Into::into).collect(),
-            unknown: value.1,
+            score: value.1,
         }
     }
 }
@@ -43,6 +47,7 @@ impl From<raw::WordSegment> for WordSegment {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Word {
     pub romanized: String,
+    /// Possible interpretations for this word.
     pub alternatives: Vec<Alternative>,
 }
 

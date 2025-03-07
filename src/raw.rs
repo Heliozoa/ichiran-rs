@@ -11,17 +11,17 @@ pub struct FullSplitInfo(pub Vec<Segment>);
 #[serde(deny_unknown_fields)]
 pub enum Segment {
     /// Japanese
-    Words(Vec<WordSegment>),
+    Segmentations(Vec<Segmentation>),
     /// Punctuation, etc.
     Other(String),
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-pub struct WordSegment(
+pub struct Segmentation(
     /// Words
     pub Vec<Word>,
-    /// Unknown
+    /// Score
     pub i32,
 );
 

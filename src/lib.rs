@@ -35,8 +35,13 @@ impl IchiranCli {
     }
 
     /// Calls and parses the output of `ichiran-cli -f`.
-    pub fn segment(&self, input: &str) -> Result<Vec<Segment>, IchiranError> {
-        let (stdout, _stderr) = self.run(&["-f", input])?;
+    /// The optional limit argument defines the max number of alternative segmentations that are returned for each segment.
+    pub fn segment(&self, input: &str, limit: Option<u32>) -> Result<Vec<Segment>, IchiranError> {
+        let (stdout, _stderr) = if let Some(limit) = limit {
+            self.run(&["-f", "-l", &limit.to_string(), input])?
+        } else {
+            self.run(&["-f", input])?
+        };
         let jd = &mut serde_json::Deserializer::from_str(&stdout);
         let info: raw::FullSplitInfo = serde_path_to_error::deserialize(jd)?;
         Ok(info.into())
@@ -141,7 +146,7 @@ mod test {
             RomanizedWithInfoEntry {
                 word: "* ichiran  一覧 【いちらん】".to_string(),
                 alternatives: vec![
-                    "1. [n,vs] look; glance; sight; inspection".to_string(),
+                    "1. [n,vs,vt] look; glance; sight; having a look at; looking over; glancing through; running one's eyes over".to_string(),
                     "2. [n] summary; list; table; catalog; catalogue".to_string()
                 ]
             }
@@ -173,13 +178,7 @@ mod test {
             out.entries[3],
             RomanizedWithInfoEntry {
                 word: "* da  だ".to_string(),
-                alternatives: vec![
-                    "1. [cop,cop-da] 《plain copula》 be; is"
-                        .to_string(),
-                    "2. [aux-v] 《た after certain verb forms; indicates past or completed action》 did; (have) done"
-                        .to_string(),
-                    "3. [aux-v] 《indicates light imperative》 please; do".to_string()
-                ]
+                alternatives: vec!["1. [aux-v,cop-da,cop] 《plain copula》 be; is".to_string()]
             }
         );
         assert_eq!(out.entries.len(), 4);
@@ -188,6 +187,21 @@ mod test {
     #[test]
     fn gets_full_split_info() {
         let ichiran = ichiran();
-        let _segmented = ichiran.segment("一覧は最高だぞ").unwrap();
+        let _segmented = ichiran.segment("一覧は最高だぞ", None).unwrap();
+    }
+
+    #[test]
+    fn uses_limit() {
+        let ichiran = ichiran();
+        let segmented = ichiran.segment("一人目", None).unwrap();
+        let Segment::Segmentations(segmentations) = &segmented[0] else {
+            panic!();
+        };
+        assert_eq!(segmentations.len(), 1);
+        let segmented = ichiran.segment("一人目", Some(2)).unwrap();
+        let Segment::Segmentations(segmentations) = &segmented[0] else {
+            panic!();
+        };
+        assert_eq!(segmentations.len(), 2);
     }
 }
