@@ -162,6 +162,7 @@ impl From<raw::Counter> for Counter {
 pub struct Gloss {
     pub pos: String,
     pub gloss: String,
+    pub field: Option<String>,
     pub info: Option<String>,
 }
 
@@ -170,6 +171,7 @@ impl From<raw::Gloss> for Gloss {
         Self {
             pos: value.pos,
             gloss: value.gloss,
+            field: value.field,
             info: value.info,
         }
     }

@@ -8,7 +8,7 @@ pub struct FullSplitInfo(pub Vec<Segment>);
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
 #[serde(untagged)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub enum Segment {
     /// Japanese
     Segmentations(Vec<Segmentation>),
@@ -17,7 +17,7 @@ pub enum Segment {
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct Segmentation(
     /// Words
     pub Vec<Word>,
@@ -26,7 +26,7 @@ pub struct Segmentation(
 );
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct Word(
     /// Romanized
     pub String,
@@ -37,7 +37,7 @@ pub struct Word(
 );
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(untagged)]
 pub enum Alternatives {
     WordInfo(Alternative),
@@ -45,7 +45,7 @@ pub enum Alternatives {
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(untagged)]
 pub enum Alternative {
     WordInfo(WordInfo),
@@ -53,7 +53,7 @@ pub enum Alternative {
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct WordInfo {
     pub reading: String,
     pub text: String,
@@ -69,7 +69,7 @@ pub struct WordInfo {
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct CompoundWordInfo {
     pub reading: String,
     pub text: String,
@@ -80,14 +80,14 @@ pub struct CompoundWordInfo {
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct Counter {
     pub value: String,
     pub ordinal: Ordinal,
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(untagged)]
 pub enum Ordinal {
     Bool(bool),
@@ -95,15 +95,16 @@ pub enum Ordinal {
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct Gloss {
     pub pos: String,
     pub gloss: String,
+    pub field: Option<String>,
     pub info: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct Conj {
     pub prop: Vec<ConjProp>,
     #[serde(default)]
@@ -115,7 +116,7 @@ pub struct Conj {
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct ConjProp {
     pub pos: String,
     #[serde(rename = "type")]
@@ -127,7 +128,7 @@ pub struct ConjProp {
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(untagged)]
 pub enum PropType {
     String(String),
@@ -135,7 +136,7 @@ pub enum PropType {
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct Via {
     pub prop: Vec<ConjProp>,
     pub reading: Option<String>,
@@ -145,7 +146,7 @@ pub struct Via {
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(untagged)]
 pub enum Readok {
     Bool(bool),

@@ -204,4 +204,15 @@ mod test {
         };
         assert_eq!(segmentations.len(), 2);
     }
+
+    #[test]
+    #[ignore = "takes a very long time, requires a book to test with from aozora bunko"]
+    fn book() {
+        let ichiran = ichiran();
+        let file = std::fs::read_to_string("./data/book").unwrap();
+        for (idx, line) in file.lines().enumerate() {
+            println!("{idx} {line}");
+            ichiran.segment(line, None).unwrap();
+        }
+    }
 }
