@@ -48,8 +48,10 @@ pub enum Alternatives {
 #[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(untagged)]
 pub enum Alternative {
-    WordInfo(WordInfo),
+    // note: this order is important so that
+    // deserialization of CompoundWordInfo is attempted first
     CompoundWordInfo(CompoundWordInfo),
+    WordInfo(WordInfo),
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq)]
